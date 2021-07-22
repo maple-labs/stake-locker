@@ -5,12 +5,12 @@ import { SignedSafeMath }    from "../../../../lib/openzeppelin-contracts/contra
 import { IERC20, SafeERC20 } from "../../../../lib/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
 import { Pausable }          from "../../../../lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
 
-import { SafeMathInt } from "../../../libraries/math/v1/SafeMathInt.sol";
+import { SafeMathInt } from "../../../libraries/math/contracts/SafeMathInt.sol";
 
-import { IBasicFDT }     from "../../funds-distribution-token/v1/interfaces/IBasicFDT.sol";
-import { IMapleGlobals } from "../../globals/v1/interfaces/IMapleGlobals.sol";
-import { IPool }         from "../../pool/v1/interfaces/IPool.sol";
-import { IPoolFactory }  from "../../pool/v1/interfaces/IPoolFactory.sol";
+import { IBasicFDT }     from "../../funds-distribution-token/contracts/interfaces/IBasicFDT.sol";
+import { IMapleGlobals } from "../../globals/contracts/interfaces/IMapleGlobals.sol";
+import { IPool }         from "../../pool/contracts/interfaces/IPool.sol";
+import { IPoolFactory }  from "../../pool/contracts/interfaces/IPoolFactory.sol";
 
 import { IStakeLocker } from "./interfaces/IStakeLocker.sol";
 
