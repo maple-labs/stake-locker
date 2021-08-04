@@ -1,29 +1,26 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.6.11;
-pragma experimental ABIEncoderV2;
 
-import { TestUtil } from "../../../../test/TestUtil.sol";
+import { DSTest } from "../../modules/ds-test/src/test.sol";
 
 import { IStakeLocker } from "../interfaces/IStakeLocker.sol";
 
-contract StakeLockerFactoryTest is TestUtil {
+import { StakeLockerFactory } from "../StakeLockerFactory.sol";
 
-    function setUp() public {
-        setUpGlobals();
-        createStakeLockerFactory();
-    }
+import { StakeLockerOwner } from "./accounts/StakeLockerOwner.sol";
 
-    function test_newLocker() public {
-        IStakeLocker sl = IStakeLocker(slFactory.newLocker(address(mpl), USDC));
+contract StakeLockerFactoryTest is DSTest {
 
-        // Validate the storage of slfactory.
-        assertEq(slFactory.owner(address(sl)), address(this));
-        assertTrue(slFactory.isLocker(address(sl)));
+    function test_newLocker(address stakeToken, address liquidityToken) external {
+        StakeLockerFactory factory     = new StakeLockerFactory();
+        StakeLockerOwner   lockerOwner = new StakeLockerOwner();
 
-        // Validate the storage of sl.
-        assertEq(address(sl.stakeAsset()), address(mpl),     "Incorrect stake asset address");
-        assertEq(sl.liquidityAsset(),      USDC,             "Incorrect address of loan asset");
-        assertEq(sl.pool(),                address(this),    "Incorrect pool address");
+        IStakeLocker locker = IStakeLocker(lockerOwner.stakeLockerFactory_newLocker(address(factory), stakeToken, liquidityToken));
+
+        // Validate the storage of factory.
+        assertEq(factory.owner(address(locker)), address(lockerOwner), "Invalid owner");
+
+        assertTrue(factory.isLocker(address(locker)), "Invalid isLocker");
     }
 
 }

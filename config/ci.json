@@ -1,0 +1,33 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/StakeLockerFactory.sol": {
+      "urls": ["contracts/StakeLockerFactory.sol"]
+    },
+    "contracts/test/StakeLocker.t.sol": {
+      "urls": ["contracts/test/StakeLocker.t.sol"]
+    },
+    "contracts/test/StakeLockerFactory.t.sol": {
+      "urls": ["contracts/test/StakeLockerFactory.t.sol"]
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode"
+        ],
+        "": ["ast"]
+      }
+    },
+    "metadata": {
+      "bytecodeHash": "none"
+    }
+  }
+}

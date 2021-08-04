@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.6.11;
 
-import { IERC20 } from "../../../../lib/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
-
-import { ExtendedFDT, SafeMath, SafeMathInt, SafeMathUint, SignedSafeMath } from "../../funds-distribution-token/contracts/ExtendedFDT.sol";
+import { ExtendedFDT, SafeMath, SafeMathInt, SafeMathUint, SignedSafeMath } from "../modules/funds-distribution-token/contracts/ExtendedFDT.sol";
+import { IERC20 }                                                           from "../modules/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
 
 import { IStakeLockerFDT } from "./interfaces/IStakeLockerFDT.sol";
 
