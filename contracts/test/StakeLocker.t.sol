@@ -13,12 +13,12 @@ import { StakeLockerStaker }       from "./accounts/StakeLockerStaker.sol";
 
 interface Hevm {
     function warp(uint256) external;
-    function store(address,bytes32,bytes32) external;
 }
 
 contract MapleGlobalsMock {
 
     bool public constant protocolPaused = false;
+
     uint256 public constant stakerCooldownPeriod = 1 days;
     uint256 public constant stakerUnstakeWindow = 1 days;
 
@@ -36,9 +36,10 @@ contract PoolFactoryMock {
 
 contract PoolMock {
 
+    bool    public constant  isPoolFinalized = false;
+
     address public immutable superFactory;
     address public immutable poolDelegate;
-    bool    public constant  isPoolFinalized = false;
 
     constructor(address _superFactory, address _poolDelegate) public {
         superFactory = _superFactory;
@@ -112,7 +113,7 @@ contract StakeLockerStakerTest is DSTest {
 
         delegate.stakeLocker_openStakeLockerToPublic(address(locker));
 
-        assertTrue( staker.try_stakeLocker_stake(address(locker), amount));
+        assertTrue(staker.try_stakeLocker_stake(address(locker), amount));
         
         assertEq(locker.stakeDate(address(staker)), block.timestamp);
         assertEq(locker.balanceOf(address(staker)), amount);
@@ -146,8 +147,8 @@ contract StakeLockerStakerTest is DSTest {
     }
 
     function test_unstake(uint256 stakeAmount, uint256 unstakeAmount) external {
-        stakeAmount = constrictToRange(stakeAmount, 1, type(uint256).max / block.timestamp);
-        unstakeAmount = constrictToRange(unstakeAmount, 1, stakeAmount);
+        stakeAmount = constrictToRange(stakeAmount, 10, type(uint256).max / block.timestamp);
+        unstakeAmount = constrictToRange(unstakeAmount, 10, stakeAmount);
 
         stakeToken.mint(address(staker), stakeAmount);
         staker.erc20_approve(address(stakeToken), address(locker), stakeAmount);
@@ -157,14 +158,6 @@ contract StakeLockerStakerTest is DSTest {
 
         uint256 start = block.timestamp;
 
-        // Can't unstake immediately (lockup not expired)
-        assertTrue(!staker.try_stakeLocker_unstake(address(locker), unstakeAmount));
-
-        hevm.warp(start + globals.stakerCooldownPeriod() - 1);
-
-        // Can't unstake in cooldown (lockup not expired)
-        assertTrue(!staker.try_stakeLocker_unstake(address(locker), unstakeAmount));
-
         hevm.warp(start + globals.stakerCooldownPeriod() + (globals.stakerUnstakeWindow() / 2));
 
         // Can't unstake in unstake window yet (lockup not expired)
@@ -172,24 +165,29 @@ contract StakeLockerStakerTest is DSTest {
 
         staker.stakeLocker_cancelUnstake(address(locker));
 
-        hevm.warp(start + 180 days + 1);
+        hevm.warp(start + locker.lockupPeriod() + 1);
 
         // Can't unstake immediately (did not intend)
         assertTrue(!staker.try_stakeLocker_unstake(address(locker), unstakeAmount));
 
         staker.stakeLocker_intendToUnstake(address(locker));
 
-        hevm.warp(start + 180 days + 1 + globals.stakerCooldownPeriod() - 1);
+        hevm.warp(start + locker.lockupPeriod() + 1 + globals.stakerCooldownPeriod() - 1);
 
         // Can't unstake in cooldown
         assertTrue(!staker.try_stakeLocker_unstake(address(locker), unstakeAmount));
 
-        hevm.warp(start + 180 days + 1 + globals.stakerCooldownPeriod());
+        hevm.warp(start + locker.lockupPeriod() + 1 + globals.stakerCooldownPeriod());
 
-        // Can unstake in cooldown
-        assertTrue(staker.try_stakeLocker_unstake(address(locker), unstakeAmount));
+        // Can unstake in unstake window
+        assertTrue(staker.try_stakeLocker_unstake(address(locker), unstakeAmount / 2));
         
-        assertEq(locker.balanceOf(address(staker)), stakeAmount - unstakeAmount);
+        assertEq(locker.balanceOf(address(staker)), stakeAmount - (unstakeAmount / 2));
+
+        hevm.warp(start + locker.lockupPeriod() + 2 + globals.stakerCooldownPeriod() + globals.stakerUnstakeWindow());
+
+        // Can't unstake past unstake window
+        assertTrue(!staker.try_stakeLocker_unstake(address(locker), unstakeAmount / 2));
     }
 
 }
@@ -213,20 +211,22 @@ contract StakeLockerAsPoolDelegateTest is DSTest {
     }
 
     function test_setAllowlist(address staker) external {
-        assertTrue(     !locker.allowed(staker));
         assertTrue(!notDelegate.try_stakeLocker_setAllowlist(address(locker), staker, true));
         assertTrue(    delegate.try_stakeLocker_setAllowlist(address(locker), staker, true));
-        assertTrue(      locker.allowed(staker));
+
+        assertTrue(locker.allowed(staker));
+
         assertTrue(!notDelegate.try_stakeLocker_setAllowlist(address(locker), staker, false));
         assertTrue(    delegate.try_stakeLocker_setAllowlist(address(locker), staker, false));
-        assertTrue(     !locker.allowed(staker));
+
+        assertTrue(!locker.allowed(staker));
     }
 
     function test_openStakeLockerToPublic() external {
-        assertTrue(     !locker.openToPublic());
         assertTrue(!notDelegate.try_stakeLocker_openStakeLockerToPublic(address(locker)));
         assertTrue(    delegate.try_stakeLocker_openStakeLockerToPublic(address(locker)));
-        assertTrue(      locker.openToPublic());
+
+        assertTrue(locker.openToPublic());
     }
 
 }
@@ -248,6 +248,7 @@ contract StakeLockerAsPoolTest is DSTest {
     function test_pull(address destination, uint256 amount) external {
         destination = destination == address(0) ? address(1) : destination;
         stakeToken.mint(address(locker), amount);
+
         assertTrue(!nonOwner.try_stakeLocker_pull(address(locker), destination, amount));
         assertTrue(    owner.try_stakeLocker_pull(address(locker), destination, amount));
     }

@@ -6,16 +6,22 @@ import { IStakeLockerFactory } from "../../interfaces/IStakeLockerFactory.sol";
 
 contract StakeLockerOwner {
 
+    /************************/
+    /*** Direct Functions ***/
+    /************************/
     function stakeLockerFactory_newLocker(address factory, address stakeAsset, address liquidityAsset) external returns (address) {
         return IStakeLockerFactory(factory).newLocker(stakeAsset, liquidityAsset);
     }
 
-    function try_stakeLockerFactory_newLocker(address factory, address stakeAsset, address liquidityAsset) external returns (bool ok) {
-        (ok,) = factory.call(abi.encodeWithSignature("newLocker(address,address)", stakeAsset, liquidityAsset));
-    }
-
     function stakeLocker_pull(address locker, address destination, uint256 amount) external {
         IStakeLocker(locker).pull(destination, amount);
+    }
+
+    /*********************/
+    /*** Try Functions ***/
+    /*********************/
+    function try_stakeLockerFactory_newLocker(address factory, address stakeAsset, address liquidityAsset) external returns (bool ok) {
+        (ok,) = factory.call(abi.encodeWithSignature("newLocker(address,address)", stakeAsset, liquidityAsset));
     }
 
     function try_stakeLocker_pull(address locker, address destination, uint256 amount) external returns (bool ok) {

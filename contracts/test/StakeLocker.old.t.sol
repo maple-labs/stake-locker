@@ -13,14 +13,14 @@ import { StakeLockerStaker }       from "./accounts/StakeLockerStaker.sol";
 
 interface Hevm {
     function warp(uint256) external;
-    function store(address,bytes32,bytes32) external;
 }
 
 contract MapleGlobalsMock {
 
     bool public constant protocolPaused = false;
+
     uint256 public constant stakerCooldownPeriod = 1 days;
-    uint256 public constant stakerUnstakeWindow = 1 days;
+    uint256 public constant stakerUnstakeWindow  = 1 days;
 
 }
 

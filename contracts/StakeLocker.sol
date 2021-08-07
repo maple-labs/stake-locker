@@ -2,16 +2,14 @@
 pragma solidity 0.6.11;
 
 import { IBasicFDT }                            from "../modules/funds-distribution-token/contracts/interfaces/IBasicFDT.sol";
+import { Context as ERC20Context }              from "../modules/funds-distribution-token/modules/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { SafeMathInt }                          from "../modules/math/contracts/SafeMathInt.sol";
 import { SignedSafeMath }                       from "../modules/openzeppelin-contracts/contracts/math/SignedSafeMath.sol";
 import { IERC20, SafeERC20 }                    from "../modules/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
 import { Pausable, Context as PausableContext } from "../modules/openzeppelin-contracts/contracts/utils/Pausable.sol";
-import { Context as ERC20Context }              from "../modules/funds-distribution-token/modules/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
-import { IMapleGlobalsLike } from "./interfaces/IMapleGlobalsLike.sol";
-import { IPoolLike }         from "./interfaces/IPoolLike.sol";
-import { IPoolFactoryLike }  from "./interfaces/IPoolFactoryLike.sol";
-import { IStakeLocker }      from "./interfaces/IStakeLocker.sol";
+import { IMapleGlobalsLike, IPoolLike, IPoolFactoryLike } from "./interfaces/Interfaces.sol";
+import { IStakeLocker }                                   from "./interfaces/IStakeLocker.sol";
 
 import { StakeLockerFDT } from "./StakeLockerFDT.sol";
 
@@ -312,10 +310,12 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
         require(!_globals().protocolPaused(), "SL:PROTO_PAUSED");
     }
 
+    // TODO: Remove this once flattening module solution exists
     function _msgSender() internal view override(PausableContext, ERC20Context) returns (address payable) {
         return msg.sender;
     }
 
+    // TODO: Remove this once flattening module solution exists
     function _msgData() internal view override(PausableContext, ERC20Context) returns (bytes memory) {
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
         return msg.data;
