@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.6.11;
 
-import { SignedSafeMath }    from "../../../../lib/openzeppelin-contracts/contracts/math/SignedSafeMath.sol";
-import { IERC20, SafeERC20 } from "../../../../lib/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
-import { Pausable }          from "../../../../lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
+import { IBasicFDT }                            from "../modules/funds-distribution-token/contracts/interfaces/IBasicFDT.sol";
+import { Context as ERC20Context }              from "../modules/funds-distribution-token/modules/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { SafeMathInt }                          from "../modules/math/contracts/SafeMathInt.sol";
+import { SignedSafeMath }                       from "../modules/openzeppelin-contracts/contracts/math/SignedSafeMath.sol";
+import { IERC20, SafeERC20 }                    from "../modules/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
+import { Pausable, Context as PausableContext } from "../modules/openzeppelin-contracts/contracts/utils/Pausable.sol";
 
-import { SafeMathInt } from "../../../libraries/math/contracts/SafeMathInt.sol";
-
-import { IBasicFDT }     from "../../funds-distribution-token/contracts/interfaces/IBasicFDT.sol";
-import { IMapleGlobals } from "../../globals/contracts/interfaces/IMapleGlobals.sol";
-import { IPool }         from "../../pool/contracts/interfaces/IPool.sol";
-import { IPoolFactory }  from "../../pool/contracts/interfaces/IPoolFactory.sol";
-
-import { IStakeLocker } from "./interfaces/IStakeLocker.sol";
+import { IMapleGlobalsLike, IPoolLike, IPoolFactoryLike } from "./interfaces/Interfaces.sol";
+import { IStakeLocker }                                   from "./interfaces/IStakeLocker.sol";
 
 import { StakeLockerFDT } from "./StakeLockerFDT.sol";
 
@@ -61,7 +58,7 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
                  2. The Pool is in Initialized or Deactivated state. 
      */
     modifier canUnstake(address from) {
-        IPool _pool = IPool(pool);
+        IPoolLike _pool = IPoolLike(pool);
 
         // The Pool cannot be finalized, but if it is, account cannot be the Pool Delegate.
         require(!_pool.isPoolFinalized() || from != _pool.poolDelegate(), "SL:STAKE_LOCKED");
@@ -266,12 +263,12 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
     /************************/
 
     function isUnstakeAllowed(address from) public override view returns (bool) {
-        IMapleGlobals globals = _globals();
+        IMapleGlobalsLike globals = _globals();
         return (block.timestamp - (unstakeCooldown[from] + globals.stakerCooldownPeriod())) <= globals.stakerUnstakeWindow();
     }
 
     function isReceiveAllowed(uint256 _unstakeCooldown) public override view returns (bool) {
-        IMapleGlobals globals = _globals();
+        IMapleGlobalsLike globals = _globals();
         return block.timestamp > (_unstakeCooldown + globals.stakerCooldownPeriod() + globals.stakerUnstakeWindow());
     }
 
@@ -279,14 +276,14 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
         @dev Checks that `msg.sender` is the Pool Delegate or a Pool Admin.
      */
     function _isValidPoolDelegateOrPoolAdmin() internal view {
-        require(msg.sender == IPool(pool).poolDelegate() || IPool(pool).poolAdmins(msg.sender), "SL:NOT_DELEGATE_OR_ADMIN");
+        require(msg.sender == IPoolLike(pool).poolDelegate() || IPoolLike(pool).poolAdmins(msg.sender), "SL:NOT_DELEGATE_OR_ADMIN");
     }
 
     /**
         @dev Checks that `msg.sender` is the Pool Delegate.
      */
     function _isValidPoolDelegate() internal view {
-        require(msg.sender == IPool(pool).poolDelegate(), "SL:NOT_DELEGATE");
+        require(msg.sender == IPoolLike(pool).poolDelegate(), "SL:NOT_DELEGATE");
     }
 
     /**
@@ -294,7 +291,7 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
      */
     function _isAllowed(address account) internal view {
         require(
-            openToPublic || allowed[account] || account == IPool(pool).poolDelegate(),
+            openToPublic || allowed[account] || account == IPoolLike(pool).poolDelegate(),
             "SL:NOT_ALLOWED"
         );
     }
@@ -302,8 +299,8 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
     /**
         @dev Returns the MapleGlobals instance.
      */
-    function _globals() internal view returns (IMapleGlobals) {
-        return IMapleGlobals(IPoolFactory(IPool(pool).superFactory()).globals());
+    function _globals() internal view returns (IMapleGlobalsLike) {
+        return IMapleGlobalsLike(IPoolFactoryLike(IPoolLike(pool).superFactory()).globals());
     }
 
     /**
@@ -311,6 +308,17 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
      */
     function _whenProtocolNotPaused() internal view {
         require(!_globals().protocolPaused(), "SL:PROTO_PAUSED");
+    }
+
+    // TODO: Remove this once flattening module solution exists
+    function _msgSender() internal view override(PausableContext, ERC20Context) returns (address payable) {
+        return msg.sender;
+    }
+
+    // TODO: Remove this once flattening module solution exists
+    function _msgData() internal view override(PausableContext, ERC20Context) returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
     }
 
 }
