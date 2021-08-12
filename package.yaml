@@ -1,0 +1,11 @@
+name: stake-locker
+version: 1.0.0
+source: contracts
+packages:
+  - path: contracts/StakeLockerFactory.sol
+    contractName: StakeLockerFactory
+    customChecksum: 0x4eecf270234f283de815e3ff0567c07a37beac9e538eb58aafc99529befc0be2
+  - path: contracts/StakeLocker.sol
+    contractName: StakeLocker
+    customChecksum: 0xa2a6e06fd216c1c236f13c06e9cd404121f0296e0902f9843fd18d0babe753b1
+customDescription: Stake Locker Artifacts and ABIs

@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.6.11;
 
-import { ExtendedFDT, SafeMath, SafeMathInt, SafeMathUint, SignedSafeMath } from "../modules/funds-distribution-token/contracts/ExtendedFDT.sol";
-import { IERC20 }                                                           from "../modules/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
+import { ExtendedFDT } from "../modules/funds-distribution-token/contracts/ExtendedFDT.sol";
+import { IERC20 }      from "../modules/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
 
 import { IStakeLockerFDT } from "./interfaces/IStakeLockerFDT.sol";
 
 /// @title StakeLockerFDT inherits ExtendedFDT and accounts for gains/losses for Stakers.
 abstract contract StakeLockerFDT is IStakeLockerFDT, ExtendedFDT {
-
-    using SafeMath       for uint256;
-    using SignedSafeMath for  int256;
 
     IERC20 public override immutable fundsToken;
 
