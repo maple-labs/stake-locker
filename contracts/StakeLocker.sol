@@ -3,8 +3,6 @@ pragma solidity 0.6.11;
 
 import { IBasicFDT }                            from "../modules/funds-distribution-token/contracts/interfaces/IBasicFDT.sol";
 import { Context as ERC20Context }              from "../modules/funds-distribution-token/modules/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { SafeMathInt }                          from "../modules/math/contracts/SafeMathInt.sol";
-import { SignedSafeMath }                       from "../modules/openzeppelin-contracts/contracts/math/SignedSafeMath.sol";
 import { IERC20, SafeERC20 }                    from "../modules/openzeppelin-contracts/contracts/token/ERC20/SafeERC20.sol";
 import { Pausable, Context as PausableContext } from "../modules/openzeppelin-contracts/contracts/utils/Pausable.sol";
 
@@ -16,9 +14,7 @@ import { StakeLockerFDT } from "./StakeLockerFDT.sol";
 /// @title StakeLocker holds custody of stakeAsset tokens for a given Pool and earns revenue from interest.
 contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
 
-    using SafeMathInt    for int256;
-    using SignedSafeMath for int256;
-    using SafeERC20      for IERC20;
+    using SafeERC20 for IERC20;
 
     uint256 constant WAD = 10 ** 18;  // Scaling factor for synthetic float division.
 
