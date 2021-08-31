@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.6.11;
 
-import { IERC20 } from "../../../modules/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
 import { IStakeLocker } from "../../interfaces/IStakeLocker.sol";
 
-contract StakeLockerStaker {
+import { StakeLockerFDTUser } from "./StakeLockerFDTUser.sol";
+
+contract Staker is StakeLockerFDTUser {
 
     /************************/
     /*** Direct Functions ***/
     /************************/
-    function erc20_approve(address token, address spender, uint256 amount) external {
-        IERC20(token).approve(spender, amount);
-    }
 
     function stakeLocker_stake(address locker, uint256 amount) external {
         IStakeLocker(locker).stake(amount);
@@ -30,23 +27,32 @@ contract StakeLockerStaker {
         IStakeLocker(locker).unstake(amount);
     }
 
+    function stakeLocker_increaseCustodyAllowance(address locker, address custodian, uint256 amount) external {
+        IStakeLocker(locker).increaseCustodyAllowance(custodian, amount);
+    }
+
     /*********************/
     /*** Try Functions ***/
     /*********************/
+
     function try_stakeLocker_stake(address locker, uint256 amount) external returns (bool ok) {
-        (ok,) = locker.call(abi.encodeWithSignature("stake(uint256)", amount));
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.stake.selector, amount));
     }
 
     function try_stakeLocker_intendToUnstake(address locker) external returns (bool ok) {
-        (ok,) = locker.call(abi.encodeWithSignature("intendToUnstake()"));
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.intendToUnstake.selector));
     }
 
     function try_stakeLocker_cancelUnstake(address locker) external returns (bool ok) {
-        (ok,) = locker.call(abi.encodeWithSignature("cancelUnstake()"));
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.cancelUnstake.selector));
     }
 
     function try_stakeLocker_unstake(address locker, uint256 amount) external returns (bool ok) {
-        (ok,) = locker.call(abi.encodeWithSignature("unstake(uint256)", amount));
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.unstake.selector, amount));
+    }
+
+    function try_stakeLocker_increaseCustodyAllowance(address locker, address custodian, uint256 amount) external returns (bool ok) {
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.increaseCustodyAllowance.selector, custodian, amount));
     }
 
 }

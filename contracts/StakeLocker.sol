@@ -18,10 +18,9 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
 
     uint256 constant WAD = 10 ** 18;  // Scaling factor for synthetic float division.
 
-    IERC20  public override immutable stakeAsset;
-
     address public override immutable liquidityAsset;
     address public override immutable pool;
+    address public override immutable stakeAsset;
 
     uint256 public override lockupPeriod;
 
@@ -39,7 +38,7 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
         address _pool
     ) StakeLockerFDT("Maple StakeLocker", "MPLSTAKE", _liquidityAsset) public {
         liquidityAsset = _liquidityAsset;
-        stakeAsset     = IERC20(_stakeAsset);
+        stakeAsset     = _stakeAsset;
         pool           = _pool;
         lockupPeriod   = 180 days;
     }
@@ -104,7 +103,7 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
     }
 
     function pull(address dst, uint256 amt) isPool external override {
-        stakeAsset.safeTransfer(dst, amt);
+        IERC20(stakeAsset).safeTransfer(dst, amt);
     }
 
     function updateLosses(uint256 bptsBurned) isPool external override {
@@ -124,12 +123,12 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
 
         _updateStakeDate(msg.sender, amt);
 
-        stakeAsset.safeTransferFrom(msg.sender, address(this), amt);
+        IERC20(stakeAsset).safeTransferFrom(msg.sender, address(this), amt);
         _mint(msg.sender, amt);
 
         emit Stake(msg.sender, amt);
         emit Cooldown(msg.sender, uint256(0));
-        emit BalanceUpdated(address(this), address(stakeAsset), stakeAsset.balanceOf(address(this)));
+        emit BalanceUpdated(address(this), stakeAsset, IERC20(stakeAsset).balanceOf(address(this)));
     }
 
     /**
@@ -175,10 +174,10 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
         _burn(msg.sender, amt);  // Burn the corresponding StakeLockerFDTs balance.
         withdrawFunds();         // Transfer the full entitled Liquidity Asset interest.
 
-        stakeAsset.safeTransfer(msg.sender, amt.sub(_recognizeLosses()));  // Unstake amount minus losses.
+        IERC20(stakeAsset).safeTransfer(msg.sender, amt.sub(_recognizeLosses()));  // Unstake amount minus losses.
 
         emit Unstake(msg.sender, amt);
-        emit BalanceUpdated(address(this), address(stakeAsset), stakeAsset.balanceOf(address(this)));
+        emit BalanceUpdated(address(this), stakeAsset, IERC20(stakeAsset).balanceOf(address(this)));
     }
 
     function withdrawFunds() public override(IBasicFDT, IStakeLocker) {
@@ -188,8 +187,8 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
 
         if (withdrawableFunds == uint256(0)) return;
 
-        fundsToken.safeTransfer(msg.sender, withdrawableFunds);
-        emit BalanceUpdated(address(this), address(fundsToken), fundsToken.balanceOf(address(this)));
+        IERC20(fundsToken).safeTransfer(msg.sender, withdrawableFunds);
+        emit BalanceUpdated(address(this), fundsToken, IERC20(fundsToken).balanceOf(address(this)));
 
         _updateFundsTokenBalance();
     }

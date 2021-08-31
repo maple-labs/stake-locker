@@ -3,59 +3,17 @@ pragma solidity 0.6.11;
 pragma experimental ABIEncoderV2;
 
 import { DSTest } from "../../modules/ds-test/src/test.sol";
-import { ERC20 }  from "../../modules/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 import { StakeLocker } from "../StakeLocker.sol";
 
-import { StakeLockerOwner }        from "./accounts/StakeLockerOwner.sol";
-import { StakeLockerPoolDelegate } from "./accounts/StakeLockerPoolDelegate.sol";
-import { StakeLockerStaker }       from "./accounts/StakeLockerStaker.sol";
+import { Pool }         from "./accounts/Pool.sol";
+import { PoolDelegate } from "./accounts/PoolDelegate.sol";
+import { Staker }       from "./accounts/Staker.sol";
+
+import { MapleGlobalsMock, PoolFactoryMock, PoolMock, MockToken } from "./mocks/Mocks.sol";
 
 interface Hevm {
     function warp(uint256) external;
-}
-
-contract MapleGlobalsMock {
-
-    bool public constant protocolPaused = false;
-
-    uint256 public constant stakerCooldownPeriod = 1 days;
-    uint256 public constant stakerUnstakeWindow = 1 days;
-
-}
-
-contract PoolFactoryMock {
-
-    address public immutable globals;
-
-    constructor(address _globals) public {
-        globals = _globals;
-    }
-
-}
-
-contract PoolMock {
-
-    bool    public constant  isPoolFinalized = false;
-
-    address public immutable superFactory;
-    address public immutable poolDelegate;
-
-    constructor(address _superFactory, address _poolDelegate) public {
-        superFactory = _superFactory;
-        poolDelegate = _poolDelegate;
-    }
-
-}
-
-contract MockToken is ERC20 {
-
-    constructor (string memory name, string memory symbol) ERC20(name, symbol) public {}
-
-    function mint(address account, uint256 amount) external {
-        _mint(account, amount);
-    }
-
 }
 
 contract StakeLockerConstructorTest is DSTest {
@@ -71,18 +29,18 @@ contract StakeLockerConstructorTest is DSTest {
 
 }
 
-contract StakeLockerStakerTest is DSTest {
+contract StakerTest is DSTest {
 
     Hevm hevm;
 
-    StakeLockerPoolDelegate internal delegate;
-    MapleGlobalsMock        internal globals;
-    PoolFactoryMock         internal factory;
-    PoolMock                internal pool;
-    MockToken               internal stakeToken;
-    MockToken               internal liquidityToken;
-    StakeLocker             internal locker;
-    StakeLockerStaker       internal staker;
+    PoolDelegate     internal delegate;
+    PoolFactoryMock  internal factory;
+    PoolMock         internal pool;
+    MapleGlobalsMock internal globals;
+    MockToken        internal stakeToken;
+    MockToken        internal liquidityToken;
+    StakeLocker      internal locker;
+    Staker           internal staker;
 
     constructor() public {
         hevm = Hevm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
@@ -93,14 +51,14 @@ contract StakeLockerStakerTest is DSTest {
     }
 
     function setUp() external {
-        delegate       = new StakeLockerPoolDelegate();
+        delegate       = new PoolDelegate();
         globals        = new MapleGlobalsMock();
         factory        = new PoolFactoryMock(address(globals));
         pool           = new PoolMock(address(factory), address(delegate));
         stakeToken     = new MockToken("ST", "ST");
         liquidityToken = new MockToken("LT", "LT");
         locker         = new StakeLocker(address(stakeToken), address(liquidityToken), address(pool));
-        staker         = new StakeLockerStaker();
+        staker         = new Staker();
     }
 
     function test_stake(uint256 amount) external {
@@ -202,16 +160,16 @@ contract StakeLockerStakerTest is DSTest {
 
 contract StakeLockerAsPoolDelegateTest is DSTest {
 
-    StakeLockerPoolDelegate internal delegate;
-    StakeLockerPoolDelegate internal notDelegate;
-    MapleGlobalsMock        internal globals;
-    PoolFactoryMock         internal factory;
-    PoolMock                internal pool;
-    StakeLocker             internal locker;
+    MapleGlobalsMock internal globals;
+    PoolDelegate     internal delegate;
+    PoolDelegate     internal notDelegate;
+    PoolFactoryMock  internal factory;
+    PoolMock         internal pool;
+    StakeLocker      internal locker;
 
     function setUp() external {
-        delegate    = new StakeLockerPoolDelegate();
-        notDelegate = new StakeLockerPoolDelegate();
+        delegate    = new PoolDelegate();
+        notDelegate = new PoolDelegate();
         globals     = new MapleGlobalsMock();
         factory     = new PoolFactoryMock(address(globals));
         pool        = new PoolMock(address(factory), address(delegate));
@@ -241,16 +199,16 @@ contract StakeLockerAsPoolDelegateTest is DSTest {
 
 contract StakeLockerAsPoolTest is DSTest {
     
-    StakeLockerOwner internal owner;
-    StakeLockerOwner internal nonOwner;
-    MockToken        internal stakeToken;
-    StakeLocker      internal locker;
+    MockToken   internal stakeToken;
+    Pool        internal owner;
+    Pool        internal nonOwner;
+    StakeLocker internal locker;
 
     function setUp() external {
-        owner       = new StakeLockerOwner();
-        nonOwner    = new StakeLockerOwner();
-        stakeToken  = new MockToken("ST", "ST");
-        locker      = new StakeLocker(address(stakeToken), address(1), address(owner));
+        owner      = new Pool();
+        nonOwner   = new Pool();
+        stakeToken = new MockToken("ST", "ST");
+        locker     = new StakeLocker(address(stakeToken), address(1), address(owner));
     }
 
     function test_pull(address destination, uint256 amount) external {

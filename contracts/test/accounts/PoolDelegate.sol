@@ -3,11 +3,14 @@ pragma solidity 0.6.11;
 
 import { IStakeLocker } from "../../interfaces/IStakeLocker.sol";
 
-contract StakeLockerPoolDelegate {
+import { PoolAdmin } from "./PoolAdmin.sol";
+
+contract PoolDelegate is PoolAdmin {
 
     /************************/
     /*** Direct Functions ***/
     /************************/
+
     function stakeLocker_setAllowlist(address locker, address staker, bool status) external {
         IStakeLocker(locker).setAllowlist(staker, status);
     }
@@ -16,15 +19,24 @@ contract StakeLockerPoolDelegate {
         IStakeLocker(locker).openStakeLockerToPublic();
     }
 
+    function stakeLocker_setLockupPeriod(address locker, uint256 newLockupPeriod) external {
+        IStakeLocker(locker).setLockupPeriod(newLockupPeriod);
+    }
+
     /*********************/
     /*** Try Functions ***/
     /*********************/
+
     function try_stakeLocker_setAllowlist(address locker, address staker, bool status) external returns (bool ok) {
-        (ok,) = locker.call(abi.encodeWithSignature("setAllowlist(address,bool)", staker, status));
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.setAllowlist.selector, staker, status));
     }
 
     function try_stakeLocker_openStakeLockerToPublic(address locker) external returns (bool ok) {
-        (ok,) = locker.call(abi.encodeWithSignature("openStakeLockerToPublic()"));
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.openStakeLockerToPublic.selector));
+    }
+
+    function try_stakeLocker_setLockupPeriod(address locker, uint256 newLockupPeriod) external returns (bool ok) {
+        (ok,) = locker.call(abi.encodeWithSelector(IStakeLocker.setLockupPeriod.selector, newLockupPeriod));
     }
 
 }
