@@ -37,8 +37,8 @@ contract StakerTest is DSTest {
     PoolFactoryMock  internal factory;
     PoolMock         internal pool;
     MapleGlobalsMock internal globals;
-    MockToken        internal stakeToken;
     MockToken        internal liquidityToken;
+    MockToken        internal stakeToken;
     StakeLocker      internal locker;
     Staker           internal staker;
 
@@ -53,12 +53,14 @@ contract StakerTest is DSTest {
     function setUp() external {
         delegate       = new PoolDelegate();
         globals        = new MapleGlobalsMock();
-        factory        = new PoolFactoryMock(address(globals));
-        pool           = new PoolMock(address(factory), address(delegate));
-        stakeToken     = new MockToken("ST", "ST");
         liquidityToken = new MockToken("LT", "LT");
-        locker         = new StakeLocker(address(stakeToken), address(liquidityToken), address(pool));
+        stakeToken     = new MockToken("ST", "ST");
         staker         = new Staker();
+
+        factory = new PoolFactoryMock(address(globals));
+        pool    = new PoolMock(address(factory), address(delegate));
+
+        locker = new StakeLocker(address(stakeToken), address(liquidityToken), address(pool));
     }
 
     function test_stake(uint256 amount) external {
@@ -171,9 +173,11 @@ contract StakeLockerAsPoolDelegateTest is DSTest {
         delegate    = new PoolDelegate();
         notDelegate = new PoolDelegate();
         globals     = new MapleGlobalsMock();
-        factory     = new PoolFactoryMock(address(globals));
-        pool        = new PoolMock(address(factory), address(delegate));
-        locker      = new StakeLocker(address(1), address(2), address(pool));
+
+        factory = new PoolFactoryMock(address(globals));
+        pool    = new PoolMock(address(factory), address(delegate));
+
+        locker = new StakeLocker(address(1), address(2), address(pool));
     }
 
     function test_setAllowlist(address staker) external {
@@ -200,15 +204,16 @@ contract StakeLockerAsPoolDelegateTest is DSTest {
 contract StakeLockerAsPoolTest is DSTest {
     
     MockToken   internal stakeToken;
-    Pool        internal owner;
     Pool        internal nonOwner;
+    Pool        internal owner;
     StakeLocker internal locker;
 
     function setUp() external {
-        owner      = new Pool();
         nonOwner   = new Pool();
+        owner      = new Pool();
         stakeToken = new MockToken("ST", "ST");
-        locker     = new StakeLocker(address(stakeToken), address(1), address(owner));
+
+        locker = new StakeLocker(address(stakeToken), address(1), address(owner));
     }
 
     function test_pull(address destination, uint256 amount) external {

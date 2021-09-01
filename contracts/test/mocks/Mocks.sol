@@ -29,7 +29,7 @@ contract PoolFactoryMock {
 
 contract PoolMock {
 
-    bool    public constant  isPoolFinalized = false;
+    bool public constant isPoolFinalized = false;
 
     address public immutable superFactory;
     address public immutable poolDelegate;

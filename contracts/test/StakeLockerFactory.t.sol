@@ -12,8 +12,8 @@ import { Pool } from "./accounts/Pool.sol";
 contract StakeLockerFactoryTest is DSTest {
 
     function test_newLocker(address stakeToken, address liquidityToken) external {
-        StakeLockerFactory factory = new StakeLockerFactory();
         Pool               pool    = new Pool();
+        StakeLockerFactory factory = new StakeLockerFactory();
 
         IStakeLocker locker = IStakeLocker(pool.stakeLockerFactory_newLocker(address(factory), stakeToken, liquidityToken));
 
