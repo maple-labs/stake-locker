@@ -18,9 +18,9 @@ contract StakeLocker is IStakeLocker, StakeLockerFDT, Pausable {
 
     uint256 constant WAD = 10 ** 18;  // Scaling factor for synthetic float division.
 
+    address public override immutable stakeAsset;
     address public override immutable liquidityAsset;
     address public override immutable pool;
-    address public override immutable stakeAsset;
 
     uint256 public override lockupPeriod;
 
