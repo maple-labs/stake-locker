@@ -9,14 +9,14 @@ import { IStakeLockerFDT } from "./interfaces/IStakeLockerFDT.sol";
 /// @title StakeLockerFDT inherits ExtendedFDT and accounts for gains/losses for Stakers.
 abstract contract StakeLockerFDT is IStakeLockerFDT, ExtendedFDT {
 
-    IERC20 public override immutable fundsToken;
+    address public override immutable fundsToken;
 
     uint256 public override bptLosses;
     uint256 public override lossesBalance;
     uint256 public override fundsTokenBalance;
 
     constructor(string memory name, string memory symbol, address _fundsToken) ExtendedFDT(name, symbol) public {
-        fundsToken = IERC20(_fundsToken);
+        fundsToken = _fundsToken;
     }
 
     /**
@@ -50,7 +50,7 @@ abstract contract StakeLockerFDT is IStakeLockerFDT, ExtendedFDT {
     function _updateFundsTokenBalance() internal virtual override returns (int256) {
         uint256 _prevFundsTokenBalance = fundsTokenBalance;
 
-        fundsTokenBalance = fundsToken.balanceOf(address(this));
+        fundsTokenBalance = IERC20(fundsToken).balanceOf(address(this));
 
         return int256(fundsTokenBalance).sub(int256(_prevFundsTokenBalance));
     }

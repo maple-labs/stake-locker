@@ -7,18 +7,18 @@ import { IStakeLocker } from "../interfaces/IStakeLocker.sol";
 
 import { StakeLockerFactory } from "../StakeLockerFactory.sol";
 
-import { StakeLockerOwner } from "./accounts/StakeLockerOwner.sol";
+import { Pool } from "./accounts/Pool.sol";
 
 contract StakeLockerFactoryTest is DSTest {
 
     function test_newLocker(address stakeToken, address liquidityToken) external {
-        StakeLockerFactory factory     = new StakeLockerFactory();
-        StakeLockerOwner   lockerOwner = new StakeLockerOwner();
+        Pool               pool    = new Pool();
+        StakeLockerFactory factory = new StakeLockerFactory();
 
-        IStakeLocker locker = IStakeLocker(lockerOwner.stakeLockerFactory_newLocker(address(factory), stakeToken, liquidityToken));
+        IStakeLocker locker = IStakeLocker(pool.stakeLockerFactory_newLocker(address(factory), stakeToken, liquidityToken));
 
         // Validate the storage of factory.
-        assertEq(factory.owner(address(locker)), address(lockerOwner), "Invalid owner");
+        assertEq(factory.owner(address(locker)), address(pool), "Invalid owner");
 
         assertTrue(factory.isLocker(address(locker)), "Invalid isLocker");
     }

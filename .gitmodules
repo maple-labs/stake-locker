@@ -13,3 +13,6 @@
 [submodule "modules/math"]
 	path = modules/math
 	url = https://github.com/maple-labs/math.git
+[submodule "modules/custodial-ownership-token"]
+	path = modules/custodial-ownership-token
+	url = https://github.com/maple-labs/custodial-ownership-token.git

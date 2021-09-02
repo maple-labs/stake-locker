@@ -2,7 +2,6 @@
 pragma solidity 0.6.11;
 
 import { IExtendedFDT } from "../../modules/funds-distribution-token/contracts/interfaces/IExtendedFDT.sol";
-import { IERC20 }       from "../../modules/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 /// @title StakeLockerFDT inherits ExtendedFDT and accounts for gains/losses for Stakers.
 interface IStakeLockerFDT is IExtendedFDT {
@@ -10,7 +9,7 @@ interface IStakeLockerFDT is IExtendedFDT {
     /**
         @dev The ERC-2222 Funds Token.
      */
-    function fundsToken() external view returns (IERC20);
+    function fundsToken() external view returns (address);
 
     /**
         @dev The sum of all unrecognized losses.
